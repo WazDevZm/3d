@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Virtual Electronics Lab</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- Hidden webcam video source -->
+  <video id="webcam" autoplay playsinline muted></video>
+
+  <!-- Three.js scene fills the viewport -->
+  <div id="scene-container"></div>
+
+  <!-- ── Top HUD ─────────────────────────────────────────── -->
+  <header id="hud-top">
+    <div id="logo">
+      <span class="logo-icon">&#9889;</span>
+      <span class="logo-text">Virtual Electronics Lab</span>
+    </div>
+
+    <div id="mode-toolbar">
+      <button id="btn-select" class="mode-btn active" title="Select / Move (S)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-7 1-4 7z"/></svg>
+        Select
+      </button>
+      <button id="btn-wire" class="mode-btn" title="Draw Wire (W)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16M4 12l4-4M4 12l4 4"/></svg>
+        Wire
+      </button>
+      <button id="btn-delete" class="mode-btn" title="Delete Component (D)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        Delete
+      </button>
+      <button id="btn-clear" class="mode-btn danger" title="Clear Workspace">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l18 18M3 21L21 3"/></svg>
+        Clear
+      </button>
+    </div>
+
+    <div id="status-bar">
+      <span id="status-icon" class="status-dot off"></span>
+      <span id="status-text">Initializing...</span>
+    </div>
+  </header>
+
+  <!-- ── Component Palette (left) ───────────────────────── -->
+  <aside id="palette">
+    <h3 class="panel-title">Components</h3>
+
+    <div class="palette-section">
+      <div class="palette-label">Power</div>
+      <button class="palette-item" data-type="battery_9v">
+        <div class="palette-preview battery-preview"></div>
+        <span>9V Battery</span>
+      </button>
+      <button class="palette-item" data-type="battery_5v">
+        <div class="palette-preview battery-preview small"></div>
+        <span>5V Supply</span>
+      </button>
+    </div>
+
+    <div class="palette-section">
+      <div class="palette-label">Passive</div>
+      <button class="palette-item" data-type="resistor_220">
+        <div class="palette-preview resistor-preview"></div>
+        <span>220&#8486; Resistor</span>
+      </button>
+      <button class="palette-item" data-type="resistor_1k">
+        <div class="palette-preview resistor-preview brown"></div>
+        <span>1k&#8486; Resistor</span>
+      </button>
+      <button class="palette-item" data-type="resistor_10k">
+        <div class="palette-preview resistor-preview orange"></div>
+        <span>10k&#8486; Resistor</span>
+      </button>
+    </div>
+
+    <div class="palette-section">
+      <div class="palette-label">Semiconductors</div>
+      <button class="palette-item" data-type="led_red">
+        <div class="palette-preview led-preview red"></div>
+        <span>Red LED</span>
+      </button>
+      <button class="palette-item" data-type="led_green">
+        <div class="palette-preview led-preview green"></div>
+        <span>Green LED</span>
+      </button>
+      <button class="palette-item" data-type="led_blue">
+        <div class="palette-preview led-preview blue"></div>
+        <span>Blue LED</span>
+      </button>
+      <button class="palette-item" data-type="led_yellow">
+        <div class="palette-preview led-preview yellow"></div>
+        <span>Yellow LED</span>
+      </button>
+    </div>
+
+    <div class="palette-section">
+      <div class="palette-label">Platform</div>
+      <button class="palette-item" data-type="breadboard">
+        <div class="palette-preview breadboard-preview"></div>
+        <span>Breadboard</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Webcam PiP (bottom-right) ──────────────────────── -->
+  <div id="webcam-pip">
+    <div id="pip-header">
+      <span>Camera Feed</span>
+      <button id="pip-toggle" title="Toggle camera feed">&#8645;</button>
+    </div>
+    <canvas id="webcam-canvas"></canvas>
+    <div id="gesture-readout">
+      <span id="gesture-icon">&#9995;</span>
+      <span id="gesture-label">No hands detected</span>
+    </div>
+  </div>
+
+  <!-- ── Info / Help Panel (bottom-left) ────────────────── -->
+  <div id="info-panel">
+    <div id="circuit-status">
+      <span class="status-led off" id="circuit-led"></span>
+      <span id="circuit-text">Circuit incomplete</span>
+    </div>
+    <div id="help-hints">
+      <div class="hint"><kbd>Pinch</kbd> Grab component</div>
+      <div class="hint"><kbd>Drag</kbd> Move component</div>
+      <div class="hint"><kbd>Release</kbd> Place component</div>
+      <div class="hint"><kbd>2 hands</kbd> Rotate grabbed item</div>
+      <div class="hint"><kbd>W mode</kbd> Draw wires</div>
+    </div>
+  </div>
+
+  <!-- ── Overlay messages ───────────────────────────────── -->
+  <div id="overlay-message" class="hidden">
+    <div id="overlay-content">
+      <div id="overlay-icon">&#9889;</div>
+      <div id="overlay-title"></div>
+      <div id="overlay-body"></div>
+    </div>
+  </div>
+
+  <!-- ── Toast notifications ───────────────────────────── -->
+  <div id="toast-container"></div>
+
+  <!-- ── Load Three.js via importmap ───────────────────── -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <!-- MediaPipe Hands (global scripts, loaded before modules) -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1640029074/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1620248257/drawing_utils.js" crossorigin="anonymous"></script>
+
+  <!-- Application modules -->
+  <script type="module" src="js/main.js"></script>
+
+</body>
+</html>
