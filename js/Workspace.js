@@ -353,26 +353,45 @@ export class Workspace {
   // ── Demo seed ─────────────────────────────────────────────────────────────
 
   _addDemoComponents() {
-    // A 9V battery, a 220Ω resistor, and a red LED laid out ready to connect
+    // Simple pre-wired circuit: 9V battery → 220Ω resistor → red LED
+    // Components laid out horizontally; circuit loop completes immediately.
     const battery = createComponent(CT.BATTERY_9V, this._scene);
-    battery.setXZ(-5.5, 0);
+    battery.setXZ(-4.5, 0);
     this._components.push(battery);
     this._circuit.add(battery);
 
     const resistor = createComponent(CT.RESISTOR_220, this._scene);
-    resistor.setXZ(0, -1.5);
+    resistor.setXZ(0.5, 0);
     this._components.push(resistor);
     this._circuit.add(resistor);
 
     const led = createComponent(CT.LED_RED, this._scene);
-    led.setXZ(5.5, 0);
+    led.setXZ(4.5, 0);
     this._components.push(led);
     this._circuit.add(led);
 
-    // Also add a green LED for variety
-    const led2 = createComponent(CT.LED_GREEN, this._scene);
-    led2.setXZ(5.5, 3);
-    this._components.push(led2);
-    this._circuit.add(led2);
+    // Pre-wire: battery(+) → resistor(a) → resistor(b) → led(anode) → led(cathode) → battery(-)
+    const batPos  = battery.terminals.find(t => t.type === 'positive');
+    const batNeg  = battery.terminals.find(t => t.type === 'negative');
+    const resA    = resistor.terminals[0];
+    const resB    = resistor.terminals[1];
+    const ledAno  = led.terminals.find(t => t.type === 'anode');
+    const ledCath = led.terminals.find(t => t.type === 'cathode');
+
+    this._connectTerminals(batPos, resA);
+    this._connectTerminals(resB, ledAno);
+    this._connectTerminals(ledCath, batNeg);
+  }
+
+  /** Create a visual wire and register it in the circuit graph. */
+  _connectTerminals(termA, termB) {
+    const wire = new Wire(this._scene, termA);
+    wire.connect(termB);
+    const added = this._circuit.connect(termA, termB, wire);
+    if (added) {
+      this._wires.push(wire);
+    } else {
+      wire.dispose();
+    }
   }
 }

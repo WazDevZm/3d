@@ -34,6 +34,11 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
         Delete
       </button>
+      <div class="toolbar-divider"></div>
+      <button id="btn-simulate" class="mode-btn simulate-btn" title="Run Circuit Simulation">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Simulate
+      </button>
       <button id="btn-clear" class="mode-btn danger" title="Clear Workspace">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l18 18M3 21L21 3"/></svg>
         Clear
@@ -46,66 +51,115 @@
     </div>
   </header>
 
-  <!-- ── Component Palette (left) ───────────────────────── -->
-  <aside id="palette">
-    <h3 class="panel-title">Components</h3>
-
-    <div class="palette-section">
-      <div class="palette-label">Power</div>
-      <button class="palette-item" data-type="battery_9v">
-        <div class="palette-preview battery-preview"></div>
-        <span>9V Battery</span>
+  <!-- ── Left Panel (tabbed) ─────────────────────────────── -->
+  <aside id="left-panel">
+    <div id="panel-tabs">
+      <button class="panel-tab active" data-tab="components">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><rect x="14" y="14" width="8" height="8" rx="1"/></svg>
+        Components
       </button>
-      <button class="palette-item" data-type="battery_5v">
-        <div class="palette-preview battery-preview small"></div>
-        <span>5V Supply</span>
+      <button class="panel-tab" data-tab="ai-guide">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        AI Guide
       </button>
     </div>
 
-    <div class="palette-section">
-      <div class="palette-label">Passive</div>
-      <button class="palette-item" data-type="resistor_220">
-        <div class="palette-preview resistor-preview"></div>
-        <span>220&#8486; Resistor</span>
-      </button>
-      <button class="palette-item" data-type="resistor_1k">
-        <div class="palette-preview resistor-preview brown"></div>
-        <span>1k&#8486; Resistor</span>
-      </button>
-      <button class="palette-item" data-type="resistor_10k">
-        <div class="palette-preview resistor-preview orange"></div>
-        <span>10k&#8486; Resistor</span>
-      </button>
+    <!-- Tab: Components -->
+    <div id="tab-components" class="tab-pane active">
+      <div class="palette-section">
+        <div class="palette-label">Power</div>
+        <button class="palette-item" data-type="battery_9v">
+          <div class="palette-preview battery-preview"></div>
+          <span>9V Battery</span>
+        </button>
+        <button class="palette-item" data-type="battery_5v">
+          <div class="palette-preview battery-preview small"></div>
+          <span>5V Supply</span>
+        </button>
+      </div>
+
+      <div class="palette-section">
+        <div class="palette-label">Passive</div>
+        <button class="palette-item" data-type="resistor_220">
+          <div class="palette-preview resistor-preview"></div>
+          <span>220&#8486; Resistor</span>
+        </button>
+        <button class="palette-item" data-type="resistor_1k">
+          <div class="palette-preview resistor-preview brown"></div>
+          <span>1k&#8486; Resistor</span>
+        </button>
+        <button class="palette-item" data-type="resistor_10k">
+          <div class="palette-preview resistor-preview orange"></div>
+          <span>10k&#8486; Resistor</span>
+        </button>
+      </div>
+
+      <div class="palette-section">
+        <div class="palette-label">Semiconductors</div>
+        <button class="palette-item" data-type="led_red">
+          <div class="palette-preview led-preview red"></div>
+          <span>Red LED</span>
+        </button>
+        <button class="palette-item" data-type="led_green">
+          <div class="palette-preview led-preview green"></div>
+          <span>Green LED</span>
+        </button>
+        <button class="palette-item" data-type="led_blue">
+          <div class="palette-preview led-preview blue"></div>
+          <span>Blue LED</span>
+        </button>
+        <button class="palette-item" data-type="led_yellow">
+          <div class="palette-preview led-preview yellow"></div>
+          <span>Yellow LED</span>
+        </button>
+      </div>
+
+      <div class="palette-section">
+        <div class="palette-label">Platform</div>
+        <button class="palette-item" data-type="breadboard">
+          <div class="palette-preview breadboard-preview"></div>
+          <span>Breadboard</span>
+        </button>
+      </div>
     </div>
 
-    <div class="palette-section">
-      <div class="palette-label">Semiconductors</div>
-      <button class="palette-item" data-type="led_red">
-        <div class="palette-preview led-preview red"></div>
-        <span>Red LED</span>
-      </button>
-      <button class="palette-item" data-type="led_green">
-        <div class="palette-preview led-preview green"></div>
-        <span>Green LED</span>
-      </button>
-      <button class="palette-item" data-type="led_blue">
-        <div class="palette-preview led-preview blue"></div>
-        <span>Blue LED</span>
-      </button>
-      <button class="palette-item" data-type="led_yellow">
-        <div class="palette-preview led-preview yellow"></div>
-        <span>Yellow LED</span>
-      </button>
-    </div>
+    <!-- Tab: AI Guide -->
+    <div id="tab-ai-guide" class="tab-pane">
+      <div id="ai-key-section">
+        <label class="ai-label">Claude API Key</label>
+        <div class="ai-key-row">
+          <input id="ai-api-key" type="password" placeholder="sk-ant-..." autocomplete="off" spellcheck="false" />
+          <button id="ai-key-save" class="ai-key-btn" title="Save key">&#10003;</button>
+        </div>
+        <div id="ai-key-status" class="ai-key-hint">Key stored locally in your browser.</div>
+      </div>
 
-    <div class="palette-section">
-      <div class="palette-label">Platform</div>
-      <button class="palette-item" data-type="breadboard">
-        <div class="palette-preview breadboard-preview"></div>
-        <span>Breadboard</span>
-      </button>
+      <div id="ai-chat-window">
+        <div id="ai-messages">
+          <div class="ai-msg ai-msg--assistant">
+            <div class="ai-msg-body">Hi! I'm your circuit guide. Ask me how to build a circuit, what a component does, or say "help me build a simple LED circuit".</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="ai-input-row">
+        <button id="ai-voice-btn" class="ai-icon-btn" title="Hold to speak">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+        <input id="ai-text-input" type="text" placeholder="Ask anything about circuits…" autocomplete="off" />
+        <button id="ai-send-btn" class="ai-icon-btn" title="Send">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
     </div>
   </aside>
+
+  <!-- ── Circuit Status Banner ───────────────────────────── -->
+  <div id="circuit-banner">
+    <div id="circuit-banner-led" class="banner-led off"></div>
+    <div id="circuit-banner-text">Circuit incomplete</div>
+    <div id="circuit-banner-sub">Connect battery → resistor → LED to complete the loop</div>
+  </div>
 
   <!-- ── Webcam PiP (bottom-right) ──────────────────────── -->
   <div id="webcam-pip">
@@ -122,10 +176,6 @@
 
   <!-- ── Info / Help Panel (bottom-left) ────────────────── -->
   <div id="info-panel">
-    <div id="circuit-status">
-      <span class="status-led off" id="circuit-led"></span>
-      <span id="circuit-text">Circuit incomplete</span>
-    </div>
     <div id="help-hints">
       <div class="hint"><kbd>Pinch</kbd> Grab component</div>
       <div class="hint"><kbd>Drag</kbd> Move component</div>
