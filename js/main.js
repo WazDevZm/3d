@@ -34,49 +34,63 @@ let handsVisible = false;
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 
 async function init() {
-  // 1. Scene
-  sceneMgr  = new SceneManager(sceneContainer);
+  try {
+    // 1. Scene
+    sceneMgr = new SceneManager(sceneContainer);
 
-  // 2. Circuit simulator
-  circuit   = new CircuitSim();
+    // 2. Circuit simulator
+    circuit = new CircuitSim();
 
-  // 3. Workspace (seeds demo components)
-  workspace = new Workspace(sceneMgr.scene, sceneMgr, circuit);
+    // 3. Workspace (seeds demo components)
+    workspace = new Workspace(sceneMgr.scene, sceneMgr, circuit);
 
-  // 4. Gesture recognizer (pure math, no async)
-  gestureRec = new GestureRecognizer();
+    // 4. Gesture recognizer (pure math, no async)
+    gestureRec = new GestureRecognizer();
 
-  // 5. Hand tracker (async – needs camera + model download)
-  handTracker = new HandTracker(video, webcamCanvas);
-  handTracker.onResults = handleHandResults;
+    // 5. UI bindings and event listeners (register before async work)
+    bindUI();
+    window.addEventListener('circuit:update', (e) => onCircuitUpdate(e.detail));
+    window.addEventListener('workspace:toast', (e) => toast(e.detail.msg, e.detail.type));
 
+    // 6. Animation loop starts immediately (scene visible before webcam is ready)
+    requestAnimationFrame(loop);
+
+  } catch (err) {
+    console.error('Scene init failed:', err);
+    setStatus('err', 'Startup error: ' + err.message);
+    showOverlay('&#9888;&#65039;', 'Startup Error',
+      err.message + ' — Open the browser console (F12) for details.');
+    return; // abort before trying to start camera
+  }
+
+  // 7. Hand tracker (async – needs camera + MediaPipe model download)
   setStatus('warn', 'Requesting camera access…');
   showOverlay('&#128247;', 'Allow Camera Access',
-    'Click "Allow" in your browser to enable the webcam. No video is sent anywhere – everything runs locally in your browser.');
+    'Click "Allow" when your browser asks for webcam permission. No video leaves your device.');
+
+  // Guard: MediaPipe must be loaded as a global script before this runs
+  if (typeof window.Hands === 'undefined') {
+    setStatus('err', 'MediaPipe failed to load – check your internet connection');
+    showOverlay('&#9888;&#65039;', 'MediaPipe Not Loaded',
+      'The hand-tracking library could not load from the CDN. Check your internet connection and reload.');
+    return;
+  }
+
+  handTracker = new HandTracker(video, webcamCanvas);
+  handTracker.onResults = handleHandResults;
 
   try {
     await handTracker.initialize();
     setStatus('on', 'Camera active – show your hands!');
     hideOverlay();
-    toast('Hand tracking ready!', 'success');
+    toast('Hand tracking ready! ✋', 'success');
   } catch (err) {
     console.error('HandTracker init failed:', err);
     setStatus('err', 'Camera error – check browser permissions');
     showOverlay('&#9888;&#65039;', 'Camera Not Available',
-      err.message || 'Could not access webcam. Please allow camera access and reload the page.');
+      (err.message || 'Could not access webcam.') +
+      ' Make sure you allowed camera access and are using http://localhost:8000 (not file://).');
   }
-
-  // 6. Animation loop
-  requestAnimationFrame(loop);
-
-  // 7. UI bindings
-  bindUI();
-
-  // 8. Circuit event listener
-  window.addEventListener('circuit:update', (e) => onCircuitUpdate(e.detail));
-  window.addEventListener('workspace:toast', (e) =>
-    toast(e.detail.msg, e.detail.type),
-  );
 }
 
 // ── Animation loop ────────────────────────────────────────────────────────────

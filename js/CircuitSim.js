@@ -244,3 +244,4 @@ export class CircuitSim {
     return false;
   }
 }
+ 

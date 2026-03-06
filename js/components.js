@@ -87,16 +87,25 @@ export class BaseComponent {
   // ── Drop shadow ──────────────────────────────────────────────────────────
 
   _buildShadow() {
-    const geo = new THREE.EllipseGeometry(this._shadowW * 0.5, this._shadowD * 0.5, 24);
+    // THREE.EllipseGeometry does not exist — build an ellipse via ShapeGeometry
+    const rw  = this._shadowW * 0.5;
+    const rd  = this._shadowD * 0.5;
+    const pts = [];
+    for (let i = 0; i <= 32; i++) {
+      const a = (i / 32) * Math.PI * 2;
+      pts.push(new THREE.Vector2(Math.cos(a) * rw, Math.sin(a) * rd));
+    }
+    const geo = new THREE.ShapeGeometry(new THREE.Shape(pts));
+
     this._shadowMat = new THREE.MeshBasicMaterial({
       color:       0x000000,
       transparent: true,
       opacity:     CONFIG.PICKUP.SHADOW_MAX_OPACITY,
       depthWrite:  false,
+      side:        THREE.DoubleSide,
     });
     this._shadowMesh = new THREE.Mesh(geo, this._shadowMat);
     this._shadowMesh.rotation.x = -Math.PI / 2;
-    this._shadowMesh.position.y = 0.008; // just above surface to avoid z-fight
     this.scene.add(this._shadowMesh);
     this._shadowMesh.position.set(this.px, 0.008, this.pz);
   }
@@ -128,19 +137,58 @@ export class BaseComponent {
 
   /** Smooth Y animation – called each frame from Workspace.tick() */
   tickY(dt) {
-    this._targetY = this.isGrabbed
-      ? CONFIG.Y.GRABBED
-      : this.isHovered
-        ? CONFIG.Y.HOVER
-        : CONFIG.Y.REST;
+    const { PICKUP, Y, SNAP_LERP } = CONFIG;
 
-    this._currentY += (this._targetY - this._currentY) * CONFIG.SNAP_LERP;
+    // ── 1. Vertical position ───────────────────────────────────────────────
+    this._targetY = this.isGrabbed ? Y.GRABBED : this.isHovered ? Y.HOVER : Y.REST;
+    this._currentY += (this._targetY - this._currentY) * SNAP_LERP;
     this.mesh.position.y = this._currentY;
-    // Terminal markers float just above the surface
+
+    // ── 2. Scale (swell up when grabbed) ──────────────────────────────────
+    const scaleTarget = this.isGrabbed ? PICKUP.SCALE_GRABBED : 1.0;
+    this._currentScale += (scaleTarget - this._currentScale) * PICKUP.SCALE_LERP;
+    this.mesh.scale.setScalar(this._currentScale);
+
+    // ── 3. Velocity-driven tilt ────────────────────────────────────────────
+    const vx = this.px - this._lastPx;
+    const vz = this.pz - this._lastPz;
+    this._lastPx = this.px;
+    this._lastPz = this.pz;
+
+    if (this.isGrabbed) {
+      // Target tilt based on current frame velocity (capped)
+      const cap = 0.35;
+      const tx = Math.max(-cap, Math.min(cap,  vz * PICKUP.TILT_FACTOR * 60));
+      const tz = Math.max(-cap, Math.min(cap, -vx * PICKUP.TILT_FACTOR * 60));
+      this._tiltX += (tx - this._tiltX) * 0.25;
+      this._tiltZ += (tz - this._tiltZ) * 0.25;
+    } else {
+      // Decay tilt back to flat
+      this._tiltX *= PICKUP.TILT_DAMPING;
+      this._tiltZ *= PICKUP.TILT_DAMPING;
+    }
+    this.mesh.rotation.x = this._tiltX;
+    this.mesh.rotation.z = this._tiltZ;
+
+    // ── 4. Drop shadow ─────────────────────────────────────────────────────
+    if (this._shadowMesh) {
+      // Shadow sits on the surface, tracking XZ
+      this._shadowMesh.position.set(this.px, 0.008, this.pz);
+
+      // Shadow grows and fades as component rises
+      const h     = Math.max(0, this._currentY);
+      const spread = 1 + h * PICKUP.SHADOW_SPREAD;
+      this._shadowMesh.scale.setScalar(spread);
+
+      const opacity = PICKUP.SHADOW_MAX_OPACITY -
+        (PICKUP.SHADOW_MAX_OPACITY - PICKUP.SHADOW_MIN_OPACITY) *
+        (h / Y.GRABBED);
+      this._shadowMat.opacity = Math.max(PICKUP.SHADOW_MIN_OPACITY, opacity);
+    }
+
+    // ── 5. Terminal markers stay on the surface ────────────────────────────
     for (const t of this.terminals) {
-      if (t.marker) {
-        t.marker.position.set(t.worldPos.x, 0.22, t.worldPos.z);
-      }
+      if (t.marker) t.marker.position.set(t.worldPos.x, 0.22, t.worldPos.z);
     }
   }
 
@@ -197,6 +245,14 @@ export class BaseComponent {
   // ── Cleanup ──────────────────────────────────────────────────────────────
 
   dispose() {
+    // Drop shadow
+    if (this._shadowMesh) {
+      this.scene.remove(this._shadowMesh);
+      this._shadowMesh.geometry.dispose();
+      this._shadowMat.dispose();
+      this._shadowMesh = null;
+    }
+    // Main mesh
     this.scene.remove(this.mesh);
     this.mesh.traverse((o) => {
       if (o.geometry) o.geometry.dispose();
@@ -205,6 +261,7 @@ export class BaseComponent {
           .forEach((m) => m.dispose());
       }
     });
+    // Terminal markers
     for (const t of this.terminals) {
       if (t.marker) {
         this.scene.remove(t.marker);
@@ -229,6 +286,9 @@ export class Resistor extends BaseComponent {
   }
 
   _buildMesh() {
+    this._shadowW = 3.6;   // elongated pill shadow
+    this._shadowD = 0.7;
+
     const bands = RESISTOR_BANDS[this.type] ?? RESISTOR_BANDS[CT.RESISTOR_220];
 
     // Body
@@ -305,6 +365,9 @@ export class LED extends BaseComponent {
   }
 
   _buildMesh() {
+    this._shadowW = 0.9;   // small circular shadow
+    this._shadowD = 0.9;
+
     this._ledColor = LED_COLORS[this.type] ?? 0xff2200;
 
     // Transparent dome
@@ -400,6 +463,9 @@ export class Battery extends BaseComponent {
   }
 
   _buildMesh() {
+    this._shadowW = 4.2;   // elongated battery shadow
+    this._shadowD = 1.3;
+
     // Body cylinder (horizontal)
     const bodyGeo = new THREE.CylinderGeometry(0.58, 0.58, 3.2, 18);
     this._bodyMat = phong(0x1a1a1a, { shininess: 60 });
@@ -480,6 +546,9 @@ export class Breadboard extends BaseComponent {
   }
 
   _buildMesh() {
+    this._shadowW = 12.0;  // large breadboard shadow
+    this._shadowD = 7.5;
+
     // Base board
     const baseGeo = new THREE.BoxGeometry(11, 0.22, 7);
     this._baseMat = phong(0xd9c87a, { shininess: 15 });

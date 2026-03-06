@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Virtual Electronics Lab — Polaris Cloud AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #080810;
+      --surface: #0f0f1a;
+      --border:  #1e1e30;
+      --text:    #e8e8f2;
+      --muted:   #7070a0;
+      --accent:  #4f8eff;
+      --accent2: #0a1535;
+      --font:    'Inter', system-ui, sans-serif;
+      --mono:    'JetBrains Mono', monospace;
+      --radius:  6px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── Nav ──────────────────────────────────────────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(8,8,16,0.88);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--accent); }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover { background: #3a72e8; }
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover { border-color: #404060; background: var(--surface); }
+
+    /* ── Hero ─────────────────────────────────────────────────────────────────── */
+    .hero {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 120px 24px 100px;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: var(--accent2);
+      color: var(--accent);
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+      border: 1px solid rgba(79,142,255,0.2);
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+      margin-bottom: 24px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, #4f8eff 0%, #a855f7 50%, #ec4899 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 1.125rem;
+      color: var(--muted);
+      margin-bottom: 40px;
+      max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .hero-actions .btn { padding: 13px 28px; font-size: 1rem; }
+
+    /* ── Stats ────────────────────────────────────────────────────────────────── */
+    .stats {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .stats-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .stat-item {
+      padding: 32px 24px;
+      border-right: 1px solid var(--border);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-num {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      background: linear-gradient(135deg, #4f8eff, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-label {
+      font-size: 0.8125rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* ── Section commons ──────────────────────────────────────────────────────── */
+    section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 80px 24px;
+    }
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(1.5rem, 3vw, 2.125rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 14px;
+    }
+    .section-sub {
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 520px;
+    }
+    .section-head { margin-bottom: 48px; }
+
+    /* ── Features ─────────────────────────────────────────────────────────────── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .feature-card {
+      background: var(--bg);
+      padding: 28px;
+      transition: background 0.15s;
+    }
+    .feature-card:hover { background: var(--surface); }
+    .feature-icon {
+      font-size: 1.5rem;
+      margin-bottom: 14px;
+    }
+    .feature-card h3 {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .feature-card p {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ── How it works ─────────────────────────────────────────────────────────── */
+    .steps-section { background: var(--surface); }
+    .steps-section > * { max-width: 1100px; margin: 0 auto; padding: 80px 24px; }
+    .steps-wrap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; }
+    .step { position: relative; }
+    .step-num {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--accent);
+      background: var(--accent2);
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 100px;
+      margin-bottom: 16px;
+    }
+    .step h3 { font-size: 1rem; font-weight: 600; margin-bottom: 8px; }
+    .step p { font-size: 0.875rem; color: var(--muted); line-height: 1.65; }
+
+    /* ── Gestures ─────────────────────────────────────────────────────────────── */
+    .gestures-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    .gesture-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      background: var(--bg);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .gesture-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent2);
+    }
+    .gesture-card .g-icon { font-size: 1.75rem; margin-bottom: 10px; }
+    .gesture-card h4 { font-size: 0.875rem; font-weight: 600; margin-bottom: 4px; }
+    .gesture-card p { font-size: 0.8125rem; color: var(--muted); }
+
+    /* ── Tech stack ───────────────────────────────────────────────────────────── */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .tech-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg);
+    }
+    .tech-icon {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .tech-name { font-size: 0.875rem; font-weight: 600; margin-bottom: 2px; }
+    .tech-desc { font-size: 0.8125rem; color: var(--muted); }
+
+    /* ── CTA ──────────────────────────────────────────────────────────────────── */
+    .cta-section {
+      border-top: 1px solid var(--border);
+    }
+    .cta-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 80px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 40px;
+    }
+    .cta-inner h2 {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      max-width: 480px;
+    }
+    .cta-inner h2 em {
+      font-style: normal;
+      background: linear-gradient(135deg, #4f8eff, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .cta-actions { display: flex; gap: 12px; flex-shrink: 0; }
+    .cta-actions .btn { padding: 12px 24px; font-size: 0.9375rem; }
+
+    /* ── Footer ───────────────────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .footer-brand { font-size: 0.875rem; font-weight: 600; }
+    .footer-brand span { color: var(--accent); }
+    .footer-credit { font-size: 0.8125rem; color: var(--muted); }
+    .footer-credit strong { color: var(--text); font-weight: 600; }
+
+    /* ── Scroll reveal ────────────────────────────────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ── Responsive ───────────────────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .gestures-grid { grid-template-columns: repeat(2, 1fr); }
+      .stats-inner { grid-template-columns: repeat(2, 1fr); }
+      .stat-item:nth-child(2) { border-right: none; }
+      .steps-wrap { grid-template-columns: 1fr; gap: 28px; }
+      .tech-grid { grid-template-columns: repeat(2, 1fr); }
+      .cta-inner { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 600px) {
+      .hero { padding-top: 80px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .gestures-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      .tech-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ──────────────────────────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="#">Virtual<span>Lab</span></a>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how-it-works">How it works</a></li>
+      <li><a href="#gestures">Gestures</a></li>
+      <li><a href="#stack">Tech stack</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ── Hero ─────────────────────────────────────────────────────────────────── -->
+<div class="hero">
+  <div class="hero-badge">✦ No hardware required</div>
+  <h1>Build circuits with your <em>bare hands</em></h1>
+  <p>A browser-based electronics lab that uses your webcam to track hand gestures in real time. Pick up components, connect wires, and complete circuits — no physical kit needed.</p>
+  <div class="hero-actions">
+    <a class="btn btn-primary" href="index.html">Get Started →</a>
+    <a class="btn btn-outline" href="#how-it-works">See how it works</a>
+  </div>
+</div>
+
+<!-- ── Stats ────────────────────────────────────────────────────────────────── -->
+<div class="stats">
+  <div class="stats-inner">
+    <div class="stat-item reveal">
+      <div class="stat-num">21</div>
+      <div class="stat-label">Hand landmarks tracked per frame</div>
+    </div>
+    <div class="stat-item reveal">
+      <div class="stat-num">30fps</div>
+      <div class="stat-label">Real-time gesture recognition</div>
+    </div>
+    <div class="stat-item reveal">
+      <div class="stat-num">5+</div>
+      <div class="stat-label">Interactive 3D components</div>
+    </div>
+    <div class="stat-item reveal">
+      <div class="stat-num">0</div>
+      <div class="stat-label">Installs, plugins or hardware</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Features ─────────────────────────────────────────────────────────────── -->
+<section id="features">
+  <div class="section-head reveal">
+    <div class="section-label">Features</div>
+    <h2 class="section-title">Everything in the browser</h2>
+    <p class="section-sub">Built with open-source tools. Works on any modern laptop with a webcam.</p>
+  </div>
+  <div class="features-grid reveal">
+    <div class="feature-card">
+      <div class="feature-icon">✋</div>
+      <h3>Real-time hand tracking</h3>
+      <p>MediaPipe detects 21 landmarks on each hand at up to 30 fps. Both hands tracked simultaneously.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔌</div>
+      <h3>Live circuit simulation</h3>
+      <p>Graph-based DFS engine checks for completed circuits. LEDs light up the moment a loop closes.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📦</div>
+      <h3>3D component workspace</h3>
+      <p>Three.js renders resistors, LEDs, batteries, and breadboards with pickup shadows and tilt physics.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🖐️</div>
+      <h3>Pinch gesture control</h3>
+      <p>Hysteresis-based pinch detection prevents jitter. Grab, drag, and drop with natural hand motion.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔗</div>
+      <h3>Wire drawing mode</h3>
+      <p>Pinch any terminal to start drawing a wire. Release on another terminal to make a connection.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎒</div>
+      <h3>Works on any device</h3>
+      <p>No downloads, no build step, no accounts. Open the URL on any computer with a webcam.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── How it works ──────────────────────────────────────────────────────────── -->
+<div class="steps-section" id="how-it-works">
+  <div>
+    <div class="section-head reveal">
+      <div class="section-label">How it works</div>
+      <h2 class="section-title">Three steps to your first circuit</h2>
+    </div>
+    <div class="steps-wrap">
+      <div class="step reveal">
+        <div class="step-num">01</div>
+        <h3>Allow camera access</h3>
+        <p>Click Allow when the browser prompts for webcam permission. Video is processed entirely in your browser — nothing is ever sent to a server.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">02</div>
+        <h3>Pick up components</h3>
+        <p>Hold your hand over a component and pinch your thumb and index finger together to grab it. Move your hand to drag it across the workspace.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">03</div>
+        <h3>Connect and complete</h3>
+        <p>Switch to Wire mode, pinch a terminal, drag to another terminal, and release. When the circuit closes, the LED lights up.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Gestures ──────────────────────────────────────────────────────────────── -->
+<section id="gestures">
+  <div class="section-head reveal">
+    <div class="section-label">Gesture reference</div>
+    <h2 class="section-title">Controls at a glance</h2>
+  </div>
+  <div class="gestures-grid reveal">
+    <div class="gesture-card">
+      <div class="g-icon">🤌</div>
+      <h4>Pinch — grab / release</h4>
+      <p>Bring thumb and index finger together to grab. Open to release.</p>
+    </div>
+    <div class="gesture-card">
+      <div class="g-icon">🖐️</div>
+      <h4>Open hand — hover</h4>
+      <p>Move an open hand over components to highlight them.</p>
+    </div>
+    <div class="gesture-card">
+      <div class="g-icon">🔄</div>
+      <h4>Two hands — rotate</h4>
+      <p>Grab with one hand, use the other to rotate the component around its axis.</p>
+    </div>
+    <div class="gesture-card">
+      <div class="g-icon">👆</div>
+      <h4>Pinch terminal — wire</h4>
+      <p>In Wire mode, pinch a terminal point to start drawing a connection.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Tech stack ────────────────────────────────────────────────────────────── -->
+<section id="stack" style="background: var(--surface); max-width: 100%; padding: 0; border-top: 1px solid var(--border);">
+  <div style="max-width: 1100px; margin: 0 auto; padding: 80px 24px;">
+    <div class="section-head reveal">
+      <div class="section-label">Tech stack</div>
+      <h2 class="section-title">What this is built with</h2>
+      <p class="section-sub">Every piece is open-source and runs entirely in the browser.</p>
+    </div>
+    <div class="tech-grid reveal">
+      <div class="tech-item">
+        <div class="tech-icon">🎨</div>
+        <div>
+          <div class="tech-name">Three.js r160</div>
+          <div class="tech-desc">WebGL 3D rendering — geometry, lighting, materials, animation loop</div>
+        </div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">👁️</div>
+        <div>
+          <div class="tech-name">MediaPipe Hands</div>
+          <div class="tech-desc">21-landmark real-time hand detection via a TFLite WASM model</div>
+        </div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">📦</div>
+        <div>
+          <div class="tech-name">ES Modules + importmap</div>
+          <div class="tech-desc">Native browser modules with no bundler, no build step required</div>
+        </div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">🔢</div>
+        <div>
+          <div class="tech-name">Graph DFS simulation</div>
+          <div class="tech-desc">Adjacency map circuit engine; finds battery→LED loops in real time</div>
+        </div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">🐍</div>
+        <div>
+          <div class="tech-name">Python HTTP server</div>
+          <div class="tech-desc">Minimal dev server that sets correct CORS and MIME headers</div>
+        </div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">🎛️</div>
+        <div>
+          <div class="tech-name">Vanilla JS</div>
+          <div class="tech-desc">Zero frameworks — gesture math, coordinate mapping, lerp animation</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ───────────────────────────────────────────────────────────────────── -->
+<div class="cta-section">
+  <div class="cta-inner">
+    <h2>Ready to build your first <em>virtual circuit</em>?</h2>
+    <div class="cta-actions">
+      <a class="btn btn-primary" href="index.html">Open the Lab →</a>
+      <a class="btn btn-outline" href="#features">Learn more</a>
+    </div>
+  </div>
+</div>
+
+<!-- ── Footer ────────────────────────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">Virtual<span>Lab</span> — Polaris Cloud AI</div>
+    <div class="footer-credit">Built by <strong>Wazingwa Mugala</strong>, Software Engineer at Polaris Cloud AI</div>
+  </div>
+</footer>
+
+<!-- ── Scroll reveal ──────────────────────────────────────────────────────────── -->
+<script>
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+
+</body>
+</html>

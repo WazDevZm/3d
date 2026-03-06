@@ -21,10 +21,9 @@ PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8000
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
-        # Allow the page to use SharedArrayBuffer (needed by some WASM libs)
-        self.send_header('Cross-Origin-Opener-Policy',  'same-origin')
-        self.send_header('Cross-Origin-Embedder-Policy', 'require-corp')
-        # CORS for CDN resources loaded from CDNs
+        # Allow CDN scripts (Three.js, MediaPipe) to load without CORS errors.
+        # NOTE: COOP/COEP headers are intentionally omitted — they block MediaPipe
+        # from fetching its own WASM and model files from the CDN.
         self.send_header('Access-Control-Allow-Origin', '*')
         super().end_headers()
 
@@ -43,7 +42,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-url = f'http://localhost:{PORT}'
+url = f'http://localhost:{PORT}/landing.html'
 
 def open_browser():
     webbrowser.open(url)
